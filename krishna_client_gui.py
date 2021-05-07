@@ -4,6 +4,7 @@ import requests
 import re
 import tkinter as tk
 from tkinter import ttk, messagebox
+import tkinter.scrolledtext as st
 
 TITLE_FONT = ("Verdana", 15)
 LARGE_FONT = ("Verdana", 11)
@@ -15,13 +16,30 @@ user_url_tag = ""
 
 
 class PriceTracker(tk.Tk):
-    def __init__(self, *args, **kwargs):
+    """
+    A class to create a bunch of frames
 
+    ...
+
+    Attributes
+    ----------
+    tk.Tk:
+        inherting tkinter module
+
+    Methods
+    -------
+    show_frame(self, cont):
+        function to bring a frame of our choosing
+    """
+
+    def __init__(self, *args, **kwargs):
+        # initialising the inherited module
         tk.Tk.__init__(self, *args, **kwargs)
 
         tk.Tk.wm_title(self, "Product Price Tracker")
 
         container = tk.Frame(self)
+        # container, which will be filled with a bunch of frames
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
@@ -36,13 +54,41 @@ class PriceTracker(tk.Tk):
 
         self.show_frame(LoginPage)
 
-    def show_frame(self, cont):
+    def show_frame(self, container):
 
-        frame = self.frames[cont]
+        frame = self.frames[container]
         frame.tkraise()
 
 
 class LoginPage(tk.Frame):
+    """
+    A class to create Login page Frame
+
+    ...
+
+    Attributes
+    ----------
+    tk.Frame:
+        inherting Frame from tkinter module
+    parent:
+        represents a widget to act as the parent of the current object
+    controller:
+        to interact with another page
+
+    Methods
+    -------
+    validate_all_fields(self):
+        to validate the input fields in login page
+    function_list(self):
+        list of functions to be called on clicking login button
+    validate_phoneno(self, user_phoneno):
+        function to validate the phone number
+    email_validation(self, user_mail):
+        function to validate the mail
+    send_login(self, dictionary):
+        function to share login details with server
+    """
+
     def __init__(self, parent, controller):
 
         tk.Frame.__init__(self, parent)
@@ -161,6 +207,24 @@ class LoginPage(tk.Frame):
 
 
 class HomePage(tk.Frame):
+    """
+    A class to create Home page frame
+
+    ...
+
+    Attributes
+    ----------
+    tk.Frame:
+        inherting frame from tkinter module
+
+    Methods
+    -------
+    search_button(self, product_url):
+        to send url details to server
+    validate_url(self):
+        to validate user url
+    """
+
     def __init__(self, parent, controller):
 
         tk.Frame.__init__(self, parent)
@@ -200,12 +264,16 @@ class HomePage(tk.Frame):
             messagebox.showinfo("Information", "Please Enter proper Url to proceed")
         else:
             response = requests.get(URL + "/api/v1/search", data=product_url)
-            display = ttk.Entry(self, width=20, font=("Arial", 14))
-            display.grid(row=3, column=1, padx=(10), pady=10)
-            response_data = response.json()
-            display.insert(
-                0, f'Product: {response_data["Title"]}\nPrice: {response_data["Price"]}'
+            text_area = st.ScrolledText(
+                self, width=30, height=8, font=("Times New Roman", 15)
             )
+            text_area.grid(row=4, column=1, padx=20, pady=5)
+            response_data = response.json()
+            text_area.insert(
+                tk.INSERT,
+                f'Product: {response_data["Title"]}\n\nPrice: {response_data["Price"]}',
+            )
+            text_area.configure(state="disabled")
 
     def validate_url(self):
         global user_url_tag
@@ -217,6 +285,25 @@ class HomePage(tk.Frame):
 
 
 class TrackingOptions(tk.Frame):
+    """
+    A class to create Tracking option frame
+
+    ...
+
+    Attributes
+    ----------
+    tk.Frame:
+        inherting frame from tkinter module
+
+    Methods
+    -------
+    validate_all_fields(self):
+        to validate the input fields in login page
+    add_to_fav(self):
+        to send prodcut details to server
+
+    """
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.flag = 0
@@ -283,11 +370,27 @@ class TrackingOptions(tk.Frame):
 
 
 class TrackedProducts(tk.Frame):
+    """
+    A class to create tracked products frame
+
+    ...
+
+    Attributes
+    ----------
+    tk.Frame:
+        inherting frame from tkinter module
+
+    Methods
+    -------
+    track_button(self):
+        to receive tracked products detail from server
+    """
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
         label_title = ttk.Label(self, text="Tracked Products", font=TITLE_FONT)
-        label_title.grid(row=0, column=2, pady=10, padx=10)
+        label_title.grid(row=0, column=1, pady=10, padx=10)
 
         button_home = ttk.Button(
             self, text="Home Page", command=lambda: controller.show_frame(HomePage)
@@ -303,9 +406,12 @@ class TrackedProducts(tk.Frame):
 
         response = requests.get(URL + "/api/v1/resources/track", data=user_email_tag)
         json_incoming_files = json.loads(response.text)
-        display = ttk.Entry(self, width=30, font=("Arial", 14))
-        display.grid(row=1, column=1, padx=(10), pady=10)
-        display.insert(0, json_incoming_files)
+        text_area = st.ScrolledText(
+            self, width=30, height=8, font=("Times New Roman", 15)
+        )
+        text_area.grid(row=1, column=1, padx=20, pady=5)
+        text_area.insert(tk.INSERT, json_incoming_files)
+        text_area.configure(state="disabled")
 
 
 if __name__ == "__main__":
