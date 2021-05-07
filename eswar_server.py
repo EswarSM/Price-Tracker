@@ -183,6 +183,7 @@ def send_url_details():
     of url and returns dictionary of title and price as keys
     """
     url = request.data.decode()
+    url = modify_url(url)
     title, price = get_data(url)
     dictionary = {"Title": title, "Price": price}
     return dictionary
@@ -208,6 +209,8 @@ def add_to_fav():
         if email == user.email:
             class_obj = user
             break
+
+    url = modify_url(url)
 
     class_obj.add_url(url, interval, price)
 
@@ -299,9 +302,7 @@ def get_data(url):
     value1 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     value2 = "(KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
     value = value1 + value2
-    headers = {
-       key: value
-    }
+    headers = {key: value}
     page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.content, "html.parser")
 
@@ -451,7 +452,7 @@ def notification_cycle():
                     print(value[3])
                     print(value[2])
                     print(value[1])
-                    # send_email(key, value)
+                    send_email(key, value)
                     print("\n\n")
 
         time.sleep(60)
@@ -506,6 +507,20 @@ def store_data(email, url, interval, filter_price):
 
     if filter_price >= price:
         add_notification_dict(title, email, url, filter_price, interval)
+
+
+def modify_url(url):
+    """
+    to get product ID for easy product tracking
+    """
+    BASE_URL = "https://www.amazon.in/dp/"
+
+    positon1 = url.find('/B0')
+    ascin = url[positon1 + 1: positon1 + 11]
+    url = BASE_URL + ascin
+    print(ascin)
+    print(url)
+    return url
 
 
 if __name__ == "__main__":
