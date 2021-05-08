@@ -13,13 +13,19 @@ This is the server script for price tracker project the functionalities are:
 import os
 import requests
 import smtplib
+import json
 import threading
 import time
 from bs4 import BeautifulSoup
 from email.message import EmailMessage
 from flask import request, jsonify, Flask
+####################################
+import database
+from application import app
+####################################
 
-app = Flask(__name__)
+# app = Flask(__name__)
+
 
 user_objects = []
 # for tracking all the objects of Users class
@@ -138,8 +144,18 @@ class Users:
         f = f"{self.email}_{interval}_{title[0:6]}"
         os.remove(f)
 
+        database.delete_product_data(email, interval, url)
+        print('Product and Track datas deleted in DB')
+
         """
         Here I have created the name so delete it from the DB
+        
+        # # delete product and track data of a product
+
+        
+        database.delete_product_data(email, interval, url)
+        print('Product and Track datas deleted')
+        
         """
         ###################################################################
 
@@ -164,12 +180,22 @@ def add_user():
         dictionary["email"],
         dictionary["phonenumber"],
     )
+    Email = email
     email = Users(name, email, phonenumber)
     user_objects.append(email)
-
+    print('before user-------------')
+    print(name, email, phonenumber)
+    add_user = database.add_user_data(name, Email, phonenumber)
+    print(add_user, 'in DB')
     ####################################################################
     """
     SAI add the user credentials to DB
+    
+    # # adding user data
+    
+    add_user = database.add_user_data(name, email, phonenumber)
+    return add_user
+    
     """
     #####################################################################
 
@@ -211,9 +237,26 @@ def add_to_fav():
             break
 
     url = modify_url(url)
+    title, price2 = get_data(url)
+
+    add_product = database.add_product_data(email,
+                                            title, interval, url, price)
+    print(add_product, 'in DB')
 
     class_obj.add_url(url, interval, price)
 
+    ####################################################################
+    """
+    SAI add the user credentials to DB
+    
+    # # adding product data
+    
+    add_product = database.add_product_data(email,
+#       title, interval, url, price)
+    return add_product
+    
+    """
+    #####################################################################
     return "Added"
 
 
@@ -282,12 +325,23 @@ def track_urls():
             "suhail.ahamed": 2.7,
         },
     ]
-    return jsonify(data)
+
+    data = database.show_all_track_data(email)
+    print('In DB')
+    print(data)
+    return json.dumps(str(data))
+    # return jsonify(data)
     ##########################################################################
     """
     SAI GET ALL RELEVANT TABLE AND SEND IT AS A JSON GET TABLE
     DATA AS A DICTIONARY CREATE A LIST OF DICTIONARY USE JSONIY
     SO THAT IT IS CONVERTED TO JSON AND SEND
+    
+    # # get all track data of a User
+    
+    data = database.show_all_track_data(email)
+    return data
+    
     """
 
     ##########################################################################
@@ -493,6 +547,13 @@ def send_email(receiever_mail, data):
 def store_data(email, url, interval, filter_price):
     title, price = get_data(url)
     f = f"{email}_{interval}_{title[0:6]}"
+    print(email, url)
+    if(interval == '1H'):
+        inter = '0'
+    else:
+        inter = '1'
+    database.add_track_list_data(email, inter, url, price)
+    print('added Track list in DB')
 
     #########################################################################
     with open(f, mode="a") as writter:
@@ -500,6 +561,12 @@ def store_data(email, url, interval, filter_price):
 
     """
     SAI I have created the table name creae table wih this name in db
+    
+    # # adding track list data
+    
+    database.add_track_list_data(email, interval, url, price)
+    
+    
     """
     #########################################################################
     price = float(price)
@@ -518,8 +585,8 @@ def modify_url(url):
     positon1 = url.find('/B0')
     ascin = url[positon1 + 1: positon1 + 11]
     url = BASE_URL + ascin
-    print(ascin)
-    print(url)
+    # print(ascin)
+    # print(url)
     return url
 
 
@@ -528,6 +595,9 @@ if __name__ == "__main__":
     Initial entry point to program
     """
     print("\nMODIFIED\n")
+
+    database.db.create_all()
+
     hour = threading.Thread(target=hour_cycle, daemon=True)
     day = threading.Thread(target=day_cycle, daemon=True)
     notification = threading.Thread(target=notification_cycle, daemon=True)
