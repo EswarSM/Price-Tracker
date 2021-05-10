@@ -139,9 +139,11 @@ class LoginPage(tk.Frame):
     def validate_all_fields(self):
         global user_email_tag
         if self.user_name.get() == "":
-            messagebox.showinfo("Information", "Please Enter Fullname to proceed")
+            messagebox.showinfo(
+                "Information", "Please Enter Fullname to proceed")
         elif self.phone_no.get() == "":
-            messagebox.showinfo("Information", "Please enter Phone Number to proceed")
+            messagebox.showinfo(
+                "Information", "Please enter Phone Number to proceed")
         elif len(self.phone_no.get()) != 10:
             messagebox.showinfo(
                 "Information", "Please Enter 10 digit Phone Number to Proceed"
@@ -192,11 +194,13 @@ class LoginPage(tk.Frame):
                 return True
             return False
         else:
-            messagebox.showinfo("Information", "This is not a valid email address")
+            messagebox.showinfo(
+                "Information", "This is not a valid email address")
             return False
 
     def send_login(self, dictionary):
-        response = requests.post(URL + "/api/v1/resources/login", data=dictionary)
+        response = requests.post(
+            URL + "/api/v1/resources/login", data=dictionary)
         if response.text == "User added":
             self.login = 1
             messagebox.showinfo("Information", "User Logged in successfully")
@@ -261,7 +265,8 @@ class HomePage(tk.Frame):
 
     def search_button(self, product_url):
         if product_url == "":
-            messagebox.showinfo("Information", "Please Enter proper Url to proceed")
+            messagebox.showinfo(
+                "Information", "Please Enter proper Url to proceed")
         else:
             response = requests.get(URL + "/api/v1/search", data=product_url)
             text_area = st.ScrolledText(
@@ -311,13 +316,15 @@ class TrackingOptions(tk.Frame):
         label_title = ttk.Label(self, text="Tracking Options", font=TITLE_FONT)
         label_title.grid(row=0, column=2, pady=10, padx=10)
 
-        label_interval = ttk.Label(self, text="Select Interval: ", font=LARGE_FONT)
+        label_interval = ttk.Label(
+            self, text="Select Interval: ", font=LARGE_FONT)
         label_interval.grid(row=1, column=1, pady=10, padx=10)
 
         self.product_interval = tk.StringVar()
         self.product_interval.set("Click Me")
 
-        interval = tk.OptionMenu(self, self.product_interval, "1 Hour", "1 Day")
+        interval = tk.OptionMenu(
+            self, self.product_interval, "1 Hour", "1 Day")
         interval.grid(row=1, column=2, pady=10, padx=10)
 
         price_label = ttk.Label(self, text="  Enter Price: ", font=LARGE_FONT).grid(
@@ -340,7 +347,8 @@ class TrackingOptions(tk.Frame):
 
     def validate_all_fields(self):
         if self.product_interval.get() == "Click Me":
-            messagebox.showinfo("Information", "Please Select Interval to proceed")
+            messagebox.showinfo(
+                "Information", "Please Select Interval to proceed")
         elif self.price.get() == "":
             messagebox.showinfo("Information", "Please Enter Price to Proceed")
         else:
@@ -361,12 +369,14 @@ class TrackingOptions(tk.Frame):
             "price": self.price.get(),
             "url": user_product_url,
         }
-        response = requests.post(URL + "/api/v1/resources/add_t0_fav", data=data)
+        response = requests.post(
+            URL + "/api/v1/resources/add_t0_fav", data=data)
         if response.text == "Added":
             self.flag = 1
             messagebox.showinfo("Information", "Product added successfully")
         else:
-            messagebox.showinfo("Information", "Some error occured Please try again")
+            messagebox.showinfo(
+                "Information", "Some error occured Please try again")
 
 
 class TrackedProducts(tk.Frame):
@@ -404,7 +414,8 @@ class TrackedProducts(tk.Frame):
 
     def track_button(self):
 
-        response = requests.get(URL + "/api/v1/resources/track", data=user_email_tag)
+        response = requests.get(
+            URL + "/api/v1/resources/track", data=user_email_tag)
         json_incoming_files = json.loads(response.text)
         text_area = st.ScrolledText(
             self, width=30, height=8, font=("Times New Roman", 15)
