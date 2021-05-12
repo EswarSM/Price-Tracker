@@ -1,4 +1,3 @@
-import socket
 import json
 import requests
 import re
@@ -13,6 +12,7 @@ URL = "http://127.0.0.1:9876"
 
 user_email_tag = ""
 user_url_tag = ""
+graph_values = {}
 
 
 class PriceTracker(tk.Tk):
@@ -32,32 +32,36 @@ class PriceTracker(tk.Tk):
         function to bring a frame of our choosing
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         # initialising the inherited module
-        tk.Tk.__init__(self, *args, **kwargs)
-
+        tk.Tk.__init__(self)
+        # creating root tkinter window
         tk.Tk.wm_title(self, "Product Price Tracker")
 
         container = tk.Frame(self)
         # container, which will be filled with a bunch of frames
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        # creating object for the frame class passing the root window
+        # frame is used to group other widgets
+        container.pack(side="top")
+        # placing the frame at top
 
         self.frames = {}
 
-        for frames in (LoginPage, HomePage, TrackedProducts, TrackingOptions):
+        for frame_class in (LoginPage, HomePage, TrackedProducts, TrackingOptions):
 
-            frame = frames(container, self)
-            self.frames[frames] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+            frame_object = frame_class(container, self)
+            # object creation for every frame class passing the container object
+            # stack frames on top of each other
+            self.frames[frame_class] = frame_object
+            frame_object.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(LoginPage)
 
-    def show_frame(self, container):
-
-        frame = self.frames[container]
+    def show_frame(self, frame_class):
+        # to display the frame in window
+        frame = self.frames[frame_class]
         frame.tkraise()
+        # To bring the frame to the top
 
 
 class LoginPage(tk.Frame):
@@ -68,8 +72,6 @@ class LoginPage(tk.Frame):
 
     Attributes
     ----------
-    tk.Frame:
-        inherting Frame from tkinter module
     parent:
         represents a widget to act as the parent of the current object
     controller:
@@ -120,12 +122,15 @@ class LoginPage(tk.Frame):
         )
         self.phone_no = tk.StringVar()
         valid_phoneno = self.register(self.validate_phoneno)
+        # registering the callback function
         phoneno_entry = ttk.Entry(
             self,
             textvariable=self.phone_no,
             validate="key",
             validatecommand=(valid_phoneno, "%P"),
         ).grid(row=4, column=2, padx=(10), pady=10)
+        # validate specifies every key stroke
+        # validatecommand to call the function, value of the entry if the edit is allowed
 
         button = tk.Button(
             self,
@@ -197,9 +202,14 @@ class LoginPage(tk.Frame):
 
     def send_login(self, dictionary):
         response = requests.post(URL + "/api/v1/resources/login", data=dictionary)
-        if response.text == "User added":
+        if response.text == "added user data":
             self.login = 1
             messagebox.showinfo("Information", "User Logged in successfully")
+        elif response.text == "Already present":
+            self.login = 1
+            messagebox.showinfo(
+                "Information", "User already present Logged in successfully"
+            )
         else:
             messagebox.showinfo(
                 "Information", "some error occurred in login. Please try again"
@@ -211,11 +221,12 @@ class HomePage(tk.Frame):
     A class to create Home page frame
 
     ...
-
     Attributes
     ----------
-    tk.Frame:
-        inherting frame from tkinter module
+    parent:
+        root frame object
+    controller:
+        root tkinter window
 
     Methods
     -------
@@ -292,8 +303,10 @@ class TrackingOptions(tk.Frame):
 
     Attributes
     ----------
-    tk.Frame:
-        inherting frame from tkinter module
+    parent:
+        root frame object
+    controller:
+        root tkinter window
 
     Methods
     -------
@@ -362,7 +375,10 @@ class TrackingOptions(tk.Frame):
             "url": user_product_url,
         }
         response = requests.post(URL + "/api/v1/resources/add_t0_fav", data=data)
-        if response.text == "Added":
+        if (
+            response.text == "added product data"
+            or response.text == "URL already added with these conditions"
+        ):
             self.flag = 1
             messagebox.showinfo("Information", "Product added successfully")
         else:
@@ -377,8 +393,10 @@ class TrackedProducts(tk.Frame):
 
     Attributes
     ----------
-    tk.Frame:
-        inherting frame from tkinter module
+    parent:
+        root frame object
+    controller:
+        root tkinter window
 
     Methods
     -------
@@ -390,28 +408,88 @@ class TrackedProducts(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         label_title = ttk.Label(self, text="Tracked Products", font=TITLE_FONT)
-        label_title.grid(row=0, column=1, pady=10, padx=10)
-
-        button_home = ttk.Button(
-            self, text="Home Page", command=lambda: controller.show_frame(HomePage)
-        )
-        button_home.grid(row=2, column=2, pady=10, padx=10)
+        label_title.grid(row=0, column=2, pady=10, padx=10)
 
         button_tracked = ttk.Button(
             self, text="List Products", command=lambda: self.track_button()
         )
         button_tracked.grid(row=2, column=1, padx=(10), pady=10)
 
+        button_home = ttk.Button(
+            self, text="Home Page", command=lambda: controller.show_frame(HomePage)
+        )
+        button_home.grid(row=2, column=2, pady=10, padx=10)
+        # self.track_button()
+        delete_label = ttk.Label(self, text="Delete Products", font=TITLE_FONT)
+        delete_label.grid(row=3, column=2, pady=10, padx=10)
+
+        product_name = ttk.Label(self, text="Product ID: ", font=LARGE_FONT)
+        product_name.grid(row=4, column=1, pady=10, padx=10)
+
+        self.product_number = tk.IntVar()
+        self.product_number.set("Type Product Id here")
+        name_entry = ttk.Entry(self, textvariable=self.product_number).grid(
+            row=4, column=2, padx=(10), pady=10
+        )
+
+        delete_button = ttk.Button(
+            self,
+            text="Delete Product",
+            command=lambda: self.delete_product(self.product_number.get()),
+        )
+        delete_button.grid(row=6, column=2, pady=10, padx=10)
+
+    def delete_product(self, product_id):
+        response = requests.get(URL + "/api/v1/resources/track", data=user_email_tag)
+        data = json.loads(response.text)
+        product_details = list(data.keys())
+        delete_product = product_details[int(product_id)]
+        title, url, interval, filter_price = delete_product.split(",")
+        email = user_email_tag
+        if product_id < len(product_details):
+            delete_data = {
+                "email": email,
+                "interval": interval,
+                "url": url,
+                "price": filter_price,
+                "title": title,
+            }
+            response = requests.post(URL + "/api/v1/resources/delete", data=delete_data)
+            if response.text == "Deletion sucessful":
+                messagebox.showinfo("Information", "Product deleted successfully")
+                self.track_button()
+            else:
+                messagebox.showinfo(
+                    "Information", "Some error occured in deletion Please try again"
+                )
+        else:
+            messagebox.showinfo("Information", "Give correct ProductID")
+
     def track_button(self):
 
         response = requests.get(URL + "/api/v1/resources/track", data=user_email_tag)
-        json_incoming_files = json.loads(response.text)
-        text_area = st.ScrolledText(
-            self, width=30, height=8, font=("Times New Roman", 15)
-        )
-        text_area.grid(row=1, column=1, padx=20, pady=5)
-        text_area.insert(tk.INSERT, json_incoming_files)
-        text_area.configure(state="disabled")
+        data = json.loads(response.text)
+        list_box = tk.Listbox(self, width=120, height=20)
+        list_box.grid(row=1, column=1, padx=20, pady=5, columnspan=2)
+        product_details = list(data.keys())
+        serial_no = 0
+        for details in product_details:
+            details_list = details.split(", ")
+            if int(details_list[2]):
+                duration = "1 Day"
+            else:
+                duration = "1 Hour"
+            list_box.insert(
+                tk.END,
+                "ProductID: "
+                + str(serial_no)
+                + " Product: "
+                + details_list[0]
+                + "\n  Duration: "
+                + duration
+                + "\n\n",
+            )
+            serial_no += 1
 
 
 if __name__ == "__main__":
