@@ -6,7 +6,7 @@ def add_user(name, email, phonenumber):
     Takes in email, username, phonenumber and adds them to user table
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
@@ -31,7 +31,7 @@ def add_url(email, title, url, duration, price):
     Takes in email,title,url,duration and price margin and adds the to product table
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
@@ -66,7 +66,7 @@ def add_track(email_id, time_stamp, url, price, title, interval, filter_price):
     """
     try:
         mydb = mysql.connector.connect(
-            host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+            host="localhost", user="root", password="krish2222na", database="krishdb"
         )
         mycursor = mydb.cursor()
 
@@ -94,7 +94,7 @@ def add_notification(email_id, title, url, filter_price, interval):
     """
     try:
         mydb = mysql.connector.connect(
-            host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+            host="localhost", user="root", password="krish2222na", database="krishdb"
         )
         mycursor = mydb.cursor()
 
@@ -122,7 +122,7 @@ def user_tracker_details(email):
     """
     try:
         mydb = mysql.connector.connect(
-            host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+            host="localhost", user="root", password="krish2222na", database="krishdb"
         )
         mycursor = mydb.cursor()
 
@@ -173,7 +173,7 @@ def delete_product(email, title, url, duration, filter_price):
     """
     try:
         mydb = mysql.connector.connect(
-                host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+                host="localhost", user="root", password="krish2222na", database="krishdb"
             )
         mycursor = mydb.cursor()
 
@@ -217,7 +217,7 @@ def get_url(duration):
     Gets details from product able for periodic checking of price
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
@@ -249,7 +249,7 @@ def get_notification_details():
     function returns the data to send notification to user
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
@@ -300,7 +300,7 @@ def get_product_id(email_id, url, price, title, interval):
     gives the product ID
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
@@ -325,7 +325,7 @@ def check_user(email):
     checks for duplicate values in user table
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
@@ -350,7 +350,7 @@ def check_product(email_id, url, duration, price):
     checks for duplicate values in products table
     """
     mydb = mysql.connector.connect(
-        host="localhost", user="root", password="Eswar@205", database="pricetracker2"
+        host="localhost", user="root", password="krish2222na", database="krishdb"
     )
     mycursor = mydb.cursor()
 
